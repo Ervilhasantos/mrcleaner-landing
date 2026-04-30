@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+body {
+  font-family: "Work Sans", sans-serif;
+  color: #2C2E33;
+  background-color: #FDFCFB;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Roboto", sans-serif;
+}
+
+.font-drama {
+  font-family: "Cormorant Garamond", serif;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* Base button styles with magnetic feel */
+.btn-magnetic {
+  @apply relative overflow-hidden transition-transform duration-300 ease-out;
+}
+.btn-magnetic:hover {
+  transform: scale(1.03) translateY(-1px);
+}
+.btn-magnetic::before {
+  content: '';
+  @apply absolute inset-0 bg-white/20 -translate-x-full transition-transform duration-500 ease-out z-0;
+}
+.btn-magnetic:hover::before {
+  @apply translate-x-0;
+}
+.btn-content {
+  @apply relative z-10;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FDFCFB;
+}
+::-webkit-scrollbar-thumb {
+  background: #F7A693;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #1BB0CE;
+}
+
+/* Custom Cursor */
+body {
+  cursor: none;
+}
+a, button, input, [role="button"] {
+  cursor: none;
+}
+.cursor-dot {
+  @apply fixed w-2 h-2 bg-accent rounded-full pointer-events-none z-[9999] mix-blend-difference transition-transform duration-100 ease-out;
+  transform: translate(-50%, -50%);
+}
+.cursor-ring {
+  @apply fixed w-8 h-8 border border-accent rounded-full pointer-events-none z-[9998] transition-all duration-300 ease-out;
+  transform: translate(-50%, -50%);
+}
+.cursor-hover .cursor-ring {
+  @apply w-12 h-12 bg-accent/20 border-transparent;
+}
+
+/* Liquid Glass Effect */
+.liquid-glass {
+  @apply bg-white/40 backdrop-blur-md border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+}
+.dark-liquid-glass {
+  @apply bg-dark/40 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+}

@@ -1,0 +1,190 @@
+{
+  "name": "MrCleaner Orçamentos",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mrcleaner",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "97e68fa7-8c38-4e89-8d19-58b23c21a4f0",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "mrcleaner"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $binary != undefined && $binary.photo != undefined }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "2bc81a28-6031-477d-b633-89ea27387a32",
+      "name": "IF Tem Foto",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "fileContent": "photo",
+        "driveId": {
+          "__rl": true,
+          "value": "1TptjEIEJGu7NJMrZLgLO7BfobPXr5Hl7",
+          "mode": "id"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1TptjEIEJGu7NJMrZLgLO7BfobPXr5Hl7",
+          "mode": "id"
+        },
+        "name": "={{ $json.body.firstName }}_{{ $json.body.lastName }}_tapete.jpg",
+        "options": {}
+      },
+      "id": "c1f77d70-fc53-481d-b57f-5d18e2c0e8f0",
+      "name": "Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        640,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1b-Y3kkaCfHnoilc9ODEK9G-JULwAPrrtzZpLiwK4FMA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Página1",
+          "mode": "list",
+          "cachedResultName": "Página1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Data/Hora": "={{ $now }}",
+            "Nome": "={{ $('Webhook').item.json.body.firstName }}",
+            "Sobrenome": "={{ $('Webhook').item.json.body.lastName }}",
+            "WhatsApp": "={{ $('Webhook').item.json.body.whatsapp }}",
+            "E-mail": "={{ $('Webhook').item.json.body.email }}",
+            "Tipo": "={{ $('Webhook').item.json.body.type }}",
+            "Comprimento (m)": "={{ $('Webhook').item.json.body.length }}",
+            "Largura (m)": "={{ $('Webhook').item.json.body.width }}",
+            "CEP": "={{ $('Webhook').item.json.body.cep }}",
+            "Foto": "={{ $json.webViewLink || 'Sem foto' }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "e2c39d84-c5cb-43cd-810a-84ebc9e1f574",
+      "name": "Google Sheets (Com Foto)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        860,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1b-Y3kkaCfHnoilc9ODEK9G-JULwAPrrtzZpLiwK4FMA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Página1",
+          "mode": "list",
+          "cachedResultName": "Página1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Data/Hora": "={{ $now }}",
+            "Nome": "={{ $('Webhook').item.json.body.firstName }}",
+            "Sobrenome": "={{ $('Webhook').item.json.body.lastName }}",
+            "WhatsApp": "={{ $('Webhook').item.json.body.whatsapp }}",
+            "E-mail": "={{ $('Webhook').item.json.body.email }}",
+            "Tipo": "={{ $('Webhook').item.json.body.type }}",
+            "Comprimento (m)": "={{ $('Webhook').item.json.body.length }}",
+            "Largura (m)": "={{ $('Webhook').item.json.body.width }}",
+            "CEP": "={{ $('Webhook').item.json.body.cep }}",
+            "Foto": "N/A"
+          }
+        },
+        "options": {}
+      },
+      "id": "18f9df0b-2dfa-4cc9-b7b2-03d35759efc7",
+      "name": "Google Sheets (Sem Foto)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        860,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "IF Tem Foto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Tem Foto": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Sheets (Sem Foto)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets (Com Foto)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
