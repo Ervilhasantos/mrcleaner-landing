@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 import { X, ArrowRight, ArrowLeft, Check, Camera, Sofa, Ruler } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -34,56 +35,58 @@ export default function QuoteModal({ isOpen, onClose }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const fileToBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result.split(',')[1]); // Pega apenas a string Base64
-    reader.onerror = error => reject(error);
-  });
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      const webhookUrl = import.meta.env.VITE_WEBHOOK_URL;
-      if (!webhookUrl) {
-        console.warn("Webhook URL não configurada. Simulando envio...");
-        setTimeout(() => nextStep(), 800);
-        return;
-      }
+      let photoUrl = "Sem foto";
 
-      // Preparar payload em JSON
-      const payload = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        whatsapp: formData.whatsapp,
-        email: formData.email,
-        type: formData.type,
-        length: formData.length,
-        width: formData.width,
-        cep: formData.cep,
-        photoData: null,
-        photoName: null,
-        photoMimeType: null
-      };
-
-      // Processar foto se existir
+      // 1. Upload da foto (se houver) para o Supabase Storage
       if (formData.photo) {
-        payload.photoData = await fileToBase64(formData.photo);
-        payload.photoName = formData.photo.name;
-        payload.photoMimeType = formData.photo.type;
+        const fileExt = formData.photo.name.split('.').pop();
+        const fileName = `${Date.now()}_${formData.firstName}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('quotes_images')
+          .upload(fileName, formData.photo);
+
+        if (uploadError) {
+          console.error("Erro ao enviar imagem pro Supabase:", uploadError);
+        } else {
+          // Pega a URL pública
+          const { data: publicUrlData } = supabase.storage
+            .from('quotes_images')
+            .getPublicUrl(fileName);
+          
+          photoUrl = publicUrlData.publicUrl;
+        }
       }
 
-      // Dispara requisição (Enviamos como text/plain para evitar erro de CORS no Google Apps Script)
-      await fetch(webhookUrl, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
+      // 2. Insere os dados na tabela 'quotes'
+      const { error: dbError } = await supabase
+        .from('quotes')
+        .insert([
+          {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            whatsapp: formData.whatsapp,
+            email: formData.email,
+            type: formData.type,
+            length: formData.length || 'N/A',
+            width: formData.width || 'N/A',
+            cep: formData.cep,
+            photo_url: photoUrl
+          }
+        ]);
+
+      if (dbError) {
+        console.error("Erro ao salvar no banco Supabase:", dbError);
+      }
 
       nextStep();
     } catch (error) {
-      console.error("Erro ao enviar orçamento:", error);
-      nextStep(); // Avança para a tela de sucesso para não frustrar o usuário
+      console.error("Erro geral no orçamento:", error);
+      nextStep(); // Avança para não travar a UX
     }
   };
 
