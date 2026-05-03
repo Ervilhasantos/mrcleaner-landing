@@ -2,9 +2,6 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
-# Set Node environment to production
-ENV NODE_ENV=production
-
 # Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
