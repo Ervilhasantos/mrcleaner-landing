@@ -1,0 +1,7 @@
+node_modules
+dist
+.git
+.agents
+GEMINI.md
+referencia_mrcleaner.md
+.env*
